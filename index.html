@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Java Interview Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f1117;--surface:#181c27;--surface2:#1f2433;
+  --border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.15);
+  --text:#e8e6df;--muted:#6b7280;--accent:#4ade80;
+  --accent-dim:rgba(74,222,128,0.12);--accent-border:rgba(74,222,128,0.3);
+  --danger:#f87171;--warn:#fbbf24;
+  --radius:10px;--radius-lg:14px;
+  --font:'IBM Plex Sans',sans-serif;--mono:'IBM Plex Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* SETUP */
+#setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:var(--bg);background-image:radial-gradient(ellipse at 20% 50%,rgba(74,222,128,0.04) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(96,165,250,0.04) 0%,transparent 50%);}
+.setup-box{width:100%;max-width:500px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:2.5rem 2rem;}
+.setup-box h2{font-size:18px;font-weight:600;margin-bottom:8px;}
+.setup-box>p{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.6;}
+.setup-step{display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--bg);border:0.5px solid var(--border);border-radius:8px;margin-bottom:10px;}
+.step-num{width:22px;height:22px;background:var(--accent-dim);border:0.5px solid var(--accent-border);border-radius:50%;font-size:11px;font-family:var(--mono);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-text{font-size:13px;line-height:1.6;color:var(--text);}
+.step-text code{background:var(--surface2);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:12px;color:var(--accent);}
+.cfg-row{margin-top:10px;display:flex;gap:8px;}
+.cfg-row input{flex:1;padding:10px 12px;background:var(--bg);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:var(--mono);outline:none;}
+.cfg-row input:focus{border-color:var(--accent-border);}
+.cfg-row input::placeholder{color:var(--muted);}
+.cfg-btn{padding:10px 16px;background:var(--accent);color:#0a1a0f;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.cfg-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
+
+/* AUTH */
+#auth-screen{min-height:100vh;display:none;align-items:center;justify-content:center;padding:2rem;background:var(--bg);background-image:radial-gradient(ellipse at 20% 50%,rgba(74,222,128,0.04) 0%,transparent 60%);}
+.auth-box{width:100%;max-width:400px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:2.5rem 2rem;}
+.auth-logo{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.1em;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px;}
+.auth-logo::before{content:'';display:inline-block;width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.auth-title{font-size:22px;font-weight:600;margin-bottom:6px;}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:2rem;line-height:1.5;}
+.tab-row{display:flex;background:var(--bg);border-radius:8px;padding:3px;margin-bottom:1.5rem;border:0.5px solid var(--border);}
+.tab{flex:1;padding:7px;font-size:13px;font-family:var(--font);font-weight:500;border:none;background:transparent;color:var(--muted);border-radius:6px;cursor:pointer;transition:all .15s;}
+.tab.active{background:var(--surface2);color:var(--text);}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-family:var(--mono);letter-spacing:.05em;}
+.field input{width:100%;padding:10px 12px;background:var(--bg);border:0.5px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:border-color .15s;}
+.field input:focus{border-color:var(--accent-border);}
+.field input::placeholder{color:var(--muted);}
+.auth-btn{width:100%;padding:11px;background:var(--accent);color:#0a1a0f;font-family:var(--font);font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:.5rem;}
+.auth-btn:hover{opacity:.9;}
+.auth-btn:active{transform:scale(.98);}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;}
+.auth-error{font-size:12px;color:var(--danger);background:rgba(248,113,113,.08);border:0.5px solid rgba(248,113,113,.2);border-radius:6px;padding:8px 12px;margin-top:12px;display:none;}
+.auth-error.show{display:block;}
+
+/* APP */
+#app-screen{display:none;min-height:100vh;}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(15,17,23,.92);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;}
+.topbar-logo{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.08em;}
+.topbar-user{margin-left:auto;font-size:12px;color:var(--muted);}
+.topbar-user span{color:var(--text);font-weight:500;}
+.signout-btn{padding:5px 12px;font-size:12px;font-family:var(--font);background:transparent;border:0.5px solid var(--border);border-radius:20px;color:var(--muted);cursor:pointer;transition:all .15s;}
+.signout-btn:hover{border-color:var(--border-hover);color:var(--text);}
+.progress-bar-wrap{background:var(--surface);border-bottom:0.5px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:14px;}
+.progress-track{flex:1;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease;}
+.progress-label{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;}
+.progress-label span{color:var(--accent);}
+.main{max-width:960px;margin:0 auto;padding:2rem 1.5rem;}
+.page-header{margin-bottom:1.5rem;}
+.page-header h1{font-size:20px;font-weight:600;}
+.page-header p{font-size:13px;color:var(--muted);margin-top:4px;}
+.toolbar{display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;}
+.tool-btn{padding:6px 14px;font-size:12px;font-family:var(--font);background:var(--surface);border:0.5px solid var(--border);border-radius:20px;color:var(--muted);cursor:pointer;transition:all .15s;}
+.tool-btn:hover{border-color:var(--border-hover);color:var(--text);}
+.tool-btn.active{background:var(--accent-dim);border-color:var(--accent-border);color:var(--accent);}
+.save-status{margin-left:auto;font-size:11px;font-family:var(--mono);color:var(--muted);display:flex;align-items:center;gap:6px;}
+.save-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+.save-dot.saving{background:var(--warn);animation:pulse .8s ease-in-out infinite;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px;}
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:border-color .15s;}
+.card:hover{border-color:var(--border-hover);}
+.card-header{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;transition:background .1s;}
+.card-header:hover{background:var(--surface2);}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.card-title{font-size:13.5px;font-weight:500;flex:1;}
+.card-meta{display:flex;align-items:center;gap:8px;}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-family:var(--mono);}
+.chevron{font-size:10px;color:var(--muted);transition:transform .2s;}
+.chevron.open{transform:rotate(90deg);}
+.card-body{display:none;padding:4px 14px 12px;border-top:0.5px solid var(--border);}
+.card-body.open{display:block;}
+.subtopic-row{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:0.5px solid rgba(255,255,255,.04);cursor:pointer;}
+.subtopic-row:last-child{border-bottom:none;}
+.subtopic-row:hover .sub-text{color:var(--text);}
+.cb{width:16px;height:16px;border:1.5px solid var(--muted);border-radius:4px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.cb.checked{background:var(--accent);border-color:var(--accent);}
+.cb.checked::after{content:'';display:block;width:9px;height:5px;border-left:1.5px solid #0a1a0f;border-bottom:1.5px solid #0a1a0f;transform:rotate(-45deg) translateY(-1px);}
+.sub-text{font-size:12.5px;color:var(--muted);line-height:1.5;transition:color .1s;}
+.sub-text.checked{color:var(--text);text-decoration:line-through;opacity:.5;}
+/* dots */
+.dot.purple{background:#7F77DD}.dot.teal{background:#1D9E75}.dot.coral{background:#D85A30}
+.dot.amber{background:#BA7517}.dot.blue{background:#378ADD}.dot.green{background:#639922}
+.dot.pink{background:#D4537E}.dot.gray{background:#888780}
+/* badges */
+.badge.purple{background:rgba(127,119,221,.12);color:#a09af0}
+.badge.teal{background:rgba(29,158,117,.12);color:#4ade80}
+.badge.coral{background:rgba(216,90,48,.12);color:#fb923c}
+.badge.amber{background:rgba(186,117,23,.12);color:#fbbf24}
+.badge.blue{background:rgba(55,138,221,.12);color:#60a5fa}
+.badge.green{background:rgba(99,153,34,.12);color:#86efac}
+.badge.pink{background:rgba(212,83,126,.12);color:#f472b6}
+.badge.gray{background:rgba(136,135,128,.12);color:#9ca3af}
+@media(max-width:600px){.grid{grid-template-columns:1fr;}.topbar{padding:10px 16px;}.main{padding:1.5rem 1rem;}}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <h2>🔧 One-time Firebase Setup</h2>
+    <p>This app uses Google Firebase (free) for login and cloud-saving your progress. Follow these 4 quick steps:</p>
+    <div class="setup-step"><div class="step-num">1</div><div class="step-text">Go to <strong>console.firebase.google.com</strong> → click <strong>Add project</strong> (free Spark plan, no credit card needed)</div></div>
+    <div class="setup-step"><div class="step-num">2</div><div class="step-text">In your project → <strong>Authentication</strong> → Get started → Enable <strong>Email/Password</strong> sign-in method → Save</div></div>
+    <div class="setup-step"><div class="step-num">3</div><div class="step-text"><strong>Firestore Database</strong> → Create database → choose <strong>Start in test mode</strong> → Next → Enable</div></div>
+    <div class="setup-step"><div class="step-num">4</div><div class="step-text">Project Settings (⚙ gear icon) → Your apps → click <strong>&lt;/&gt;</strong> web icon → Register app → copy <code>apiKey</code> and <code>projectId</code> from the config shown</div></div>
+    <div class="cfg-row"><input type="text" id="cfg-apikey" placeholder="apiKey  (e.g. AIzaSyABC...)" /></div>
+    <div class="cfg-row" style="margin-top:8px;">
+      <input type="text" id="cfg-projectid" placeholder="projectId  (e.g. my-java-tracker)" />
+      <button class="cfg-btn" onclick="applyConfig()">Connect →</button>
+    </div>
+    <p class="cfg-note">🔒 Your credentials are stored only in this browser. They are sent directly to Firebase's servers and nowhere else.</p>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">☕ JAVA TRACKER</div>
+    <h1 class="auth-title">Track your prep</h1>
+    <p class="auth-sub">Sign in to save your progress across all devices.</p>
+    <div class="tab-row">
+      <button class="tab active" id="tab-login" onclick="switchTab('login')">Sign in</button>
+      <button class="tab" id="tab-signup" onclick="switchTab('signup')">Create account</button>
+    </div>
+    <div class="field"><label>EMAIL</label><input type="email" id="auth-email" placeholder="you@example.com" /></div>
+    <div class="field"><label>PASSWORD</label><input type="password" id="auth-pass" placeholder="••••••••" /></div>
+    <div class="field" id="confirm-field" style="display:none;"><label>CONFIRM PASSWORD</label><input type="password" id="auth-confirm" placeholder="••••••••" /></div>
+    <button class="auth-btn" id="auth-submit" onclick="handleAuth()">Sign in</button>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen">
+  <div class="topbar">
+    <span class="topbar-logo">☕ JAVA TRACKER</span>
+    <span class="topbar-user">Signed in as <span id="user-email-label"></span></span>
+    <button class="signout-btn" onclick="doSignOut()">Sign out</button>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    <div class="progress-label"><span id="progress-done">0</span> / <span id="progress-total">0</span> topics completed</div>
+  </div>
+  <div class="main">
+    <div class="page-header">
+      <h1>Java Developer Interview Topics</h1>
+      <p>Check off topics as you study — progress saved to your account automatically.</p>
+    </div>
+    <div class="toolbar">
+      <button class="tool-btn active" id="btn-all" onclick="filterCards('all')">All</button>
+      <button class="tool-btn" id="btn-incomplete" onclick="filterCards('incomplete')">Incomplete</button>
+      <button class="tool-btn" id="btn-complete" onclick="filterCards('complete')">Completed</button>
+      <button class="tool-btn" id="btn-expand" onclick="toggleAll()">▼ Expand all</button>
+      <div class="save-status"><div class="save-dot" id="save-dot"></div><span id="save-label">Saved</span></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const TOPICS = [
+  {color:"purple",title:"Core Java",subs:["OOP concepts (Inheritance, Polymorphism, Encapsulation, Abstraction)","Data types & variables","Control flow (if/else, switch, loops)","Arrays & Strings","Exception handling (try/catch/finally, custom exceptions)","Wrapper classes & Autoboxing","String, StringBuilder, StringBuffer","static, final, abstract keywords","Interfaces vs Abstract classes","Access modifiers (public, private, protected, default)"]},
+  {color:"teal",title:"Java 8+ Features",subs:["Lambda expressions","Stream API (filter, map, reduce, collect)","Functional interfaces (Predicate, Function, Consumer, Supplier)","Optional class","Default & static methods in interfaces","Date/Time API (LocalDate, LocalDateTime)","Method references (::)","Collectors & Grouping"]},
+  {color:"blue",title:"Collections Framework",subs:["List (ArrayList, LinkedList)","Set (HashSet, TreeSet, LinkedHashSet)","Map (HashMap, TreeMap, LinkedHashMap, ConcurrentHashMap)","Queue & Deque (PriorityQueue, ArrayDeque)","Iterator & ListIterator","Comparable vs Comparator","Fail-fast vs Fail-safe iterators","Collections utility class"]},
+  {color:"amber",title:"Multithreading & Concurrency",subs:["Thread creation (Thread class, Runnable, Callable)","Thread lifecycle & states","synchronized keyword","volatile keyword","wait(), notify(), notifyAll()","Executor framework & thread pools","Future & CompletableFuture","Locks (ReentrantLock, ReadWriteLock)","Deadlock, race condition, starvation"]},
+  {color:"coral",title:"Spring Framework",subs:["Dependency Injection & IoC container","Spring Beans lifecycle & scopes","@Component, @Service, @Repository, @Controller","Spring MVC & REST controllers","@RequestMapping, @GetMapping, @PostMapping","Spring Boot auto-configuration","application.properties / yml","Spring Data JPA & Hibernate basics","@Transactional","Spring Security basics (authentication & authorization)"]},
+  {color:"green",title:"Database & JPA",subs:["JDBC basics (Connection, Statement, PreparedStatement)","JPA/Hibernate ORM concepts","@Entity, @Table, @Column, @Id","Relationships (@OneToOne, @OneToMany, @ManyToMany)","JPQL & Named queries","Lazy vs Eager loading","Transaction management","SQL queries (SELECT, JOIN, GROUP BY, subqueries)"]},
+  {color:"pink",title:"Data Structures & Algorithms",subs:["Arrays, Linked lists, Stacks, Queues","Trees (Binary Tree, BST, Heap)","Graphs (BFS, DFS)","Sorting algorithms (Bubble, Merge, Quick, Insertion)","Searching (Binary search, Linear search)","Hashing & Hash maps","Recursion & Dynamic programming","Time & Space complexity (Big-O notation)"]},
+  {color:"blue",title:"Design Patterns",subs:["Singleton pattern","Factory & Abstract Factory","Builder pattern","Observer pattern","Strategy pattern","Proxy & Decorator patterns"]},
+  {color:"gray",title:"SOLID Principles",subs:["Single Responsibility Principle (SRP)","Open/Closed Principle (OCP)","Liskov Substitution Principle (LSP)","Interface Segregation Principle (ISP)","Dependency Inversion Principle (DIP)"]},
+  {color:"teal",title:"REST API & Web Services",subs:["REST principles & HTTP methods (GET, POST, PUT, DELETE)","HTTP status codes (200, 201, 400, 401, 404, 500)","@RestController & ResponseEntity","Request/Response body & JSON serialization","Exception handling in REST (@ExceptionHandler, @ControllerAdvice)","API versioning","Postman & API testing basics"]},
+  {color:"amber",title:"JVM & Memory Management",subs:["JVM architecture (ClassLoader, JIT, Interpreter)","Java memory areas (Heap, Stack, Method Area, PC Register)","Garbage collection algorithms (G1, CMS, Serial)","Memory leaks & how to avoid","String pool & interning","Class loading mechanism","Performance tuning basics"]},
+  {color:"coral",title:"Testing",subs:["Unit testing with JUnit 5","Mockito for mocking dependencies","@Mock, @InjectMocks, @Spy","Integration testing in Spring Boot","Test-driven development (TDD) basics","AssertJ & Hamcrest matchers"]},
+  {color:"purple",title:"Build Tools & DevOps Basics",subs:["Maven (pom.xml, dependency management, lifecycle)","Gradle basics","Git (clone, commit, push, pull, merge, rebase)","Docker (containers, Dockerfile, basic commands)","CI/CD pipeline overview (Jenkins/GitHub Actions)","Linux commands for Java developers"]},
+  {color:"green",title:"Microservices",subs:["Monolith vs Microservices architecture","Spring Boot microservice setup","Service discovery (Eureka)","API Gateway (Spring Cloud Gateway / Zuul)","Inter-service communication (REST, Feign client)","Message queues (Kafka, RabbitMQ basics)","Circuit breaker pattern (Resilience4j)"]},
+  {color:"gray",title:"Cloud & Deployment",subs:["AWS basics (EC2, S3, RDS)","Deploying Spring Boot app on AWS / Azure","Containerization with Docker","Kubernetes basics (pods, services, deployments)","Environment configuration & secrets management"]}
+];
+
+let auth, db, currentUser, checked = {}, saveTimer = null, allOpen = false, currentFilter = 'all';
+
+function initFirebase(apiKey, projectId) {
+  const app = initializeApp({ apiKey, authDomain:`${projectId}.firebaseapp.com`, projectId });
+  auth = getAuth(app);
+  db = getFirestore(app);
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('user-email-label').textContent = user.email;
+      checked = await loadProgress(user.uid);
+      renderGrid();
+      show('app-screen');
+    } else {
+      currentUser = null;
+      show('auth-screen');
+    }
+  });
+}
+
+async function loadProgress(uid) {
+  try {
+    const snap = await getDoc(doc(db,'progress',uid));
+    return snap.exists() ? (snap.data().checked || {}) : {};
+  } catch { return {}; }
+}
+
+async function saveProgress() {
+  if (!currentUser) return;
+  setSaveDot('saving');
+  try {
+    await setDoc(doc(db,'progress',currentUser.uid), { checked, updatedAt: Date.now() });
+    setSaveDot('saved');
+  } catch { setSaveDot('error'); }
+}
+
+function scheduleSave() {
+  setSaveDot('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveProgress, 1200);
+}
+
+function setSaveDot(state) {
+  const dot = document.getElementById('save-dot');
+  const lbl = document.getElementById('save-label');
+  dot.className = 'save-dot' + (state === 'saving' ? ' saving' : '');
+  lbl.textContent = state === 'saving' ? 'Saving…' : state === 'error' ? 'Error saving' : 'Saved';
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  let totalSubs = 0, doneSubs = 0;
+  TOPICS.forEach((t, ti) => {
+    const cardDone = t.subs.filter((_,si) => checked[`${ti}-${si}`]).length;
+    totalSubs += t.subs.length; doneSubs += cardDone;
+    const card = document.createElement('div');
+    card.className = 'card'; card.dataset.ti = ti;
+    card.dataset.done = cardDone; card.dataset.total = t.subs.length;
+    card.innerHTML = `
+      <div class="card-header" onclick="toggleCard(${ti})">
+        <div class="dot ${t.color}"></div>
+        <span class="card-title">${t.title}</span>
+        <div class="card-meta">
+          <span class="badge ${t.color}" id="badge-${ti}">${cardDone}/${t.subs.length}</span>
+          <span class="chevron" id="chev-${ti}">▶</span>
+        </div>
+      </div>
+      <div class="card-body" id="body-${ti}">
+        ${t.subs.map((s,si) => {
+          const done = !!checked[`${ti}-${si}`];
+          return `<div class="subtopic-row" onclick="toggleCheck(${ti},${si})">
+            <div class="cb ${done?'checked':''}" id="cb-${ti}-${si}"></div>
+            <span class="sub-text ${done?'checked':''}" id="st-${ti}-${si}">${s}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+    grid.appendChild(card);
+  });
+  updateProgressBar(doneSubs, totalSubs);
+  applyFilter(currentFilter);
+}
+
+function updateProgressBar(done, total) {
+  document.getElementById('progress-done').textContent = done;
+  document.getElementById('progress-total').textContent = total;
+  document.getElementById('progress-fill').style.width = total ? (done/total*100).toFixed(1)+'%' : '0%';
+}
+
+window.toggleCheck = function(ti, si) {
+  const key = `${ti}-${si}`;
+  checked[key] = !checked[key];
+  document.getElementById(`cb-${ti}-${si}`).classList.toggle('checked', checked[key]);
+  document.getElementById(`st-${ti}-${si}`).classList.toggle('checked', checked[key]);
+  const card = document.querySelector(`[data-ti="${ti}"]`);
+  const total = TOPICS[ti].subs.length;
+  const done = TOPICS[ti].subs.filter((_,j) => checked[`${ti}-${j}`]).length;
+  card.dataset.done = done;
+  document.getElementById(`badge-${ti}`).textContent = `${done}/${total}`;
+  const allDone = TOPICS.reduce((a,t,i) => a + t.subs.filter((_,j) => checked[`${i}-${j}`]).length, 0);
+  const allTotal = TOPICS.reduce((a,t) => a + t.subs.length, 0);
+  updateProgressBar(allDone, allTotal);
+  scheduleSave();
+};
+
+window.toggleCard = function(ti) {
+  document.getElementById('body-'+ti).classList.toggle('open');
+  document.getElementById('chev-'+ti).classList.toggle('open');
+};
+
+window.toggleAll = function() {
+  allOpen = !allOpen;
+  TOPICS.forEach((_,i) => {
+    document.getElementById('body-'+i)?.classList.toggle('open', allOpen);
+    document.getElementById('chev-'+i)?.classList.toggle('open', allOpen);
+  });
+  document.getElementById('btn-expand').textContent = allOpen ? '▲ Collapse all' : '▼ Expand all';
+};
+
+window.filterCards = function(mode) {
+  currentFilter = mode;
+  ['all','incomplete','complete'].forEach(m =>
+    document.getElementById('btn-'+m).classList.toggle('active', m === mode));
+  applyFilter(mode);
+};
+
+function applyFilter(mode) {
+  document.querySelectorAll('.card').forEach(card => {
+    const done = parseInt(card.dataset.done), total = parseInt(card.dataset.total);
+    if (mode === 'complete') card.style.display = done === total ? '' : 'none';
+    else if (mode === 'incomplete') card.style.display = done < total ? '' : 'none';
+    else card.style.display = '';
+  });
+}
+
+window.switchTab = function(tab) {
+  const isSignup = tab === 'signup';
+  document.getElementById('tab-login').classList.toggle('active', !isSignup);
+  document.getElementById('tab-signup').classList.toggle('active', isSignup);
+  document.getElementById('confirm-field').style.display = isSignup ? '' : 'none';
+  document.getElementById('auth-submit').textContent = isSignup ? 'Create account' : 'Sign in';
+  document.getElementById('auth-error').classList.remove('show');
+};
+
+window.handleAuth = async function() {
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  const confirm = document.getElementById('auth-confirm').value;
+  const isSignup = document.getElementById('tab-signup').classList.contains('active');
+  document.getElementById('auth-error').classList.remove('show');
+  if (!email || !pass) { showErr('Please fill in all fields.'); return; }
+  if (isSignup && pass !== confirm) { showErr('Passwords do not match.'); return; }
+  if (isSignup && pass.length < 6) { showErr('Password must be at least 6 characters.'); return; }
+  document.getElementById('auth-submit').disabled = true;
+  try {
+    if (isSignup) await createUserWithEmailAndPassword(auth, email, pass);
+    else await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    const msgs = {'auth/user-not-found':'No account found. Try creating one.','auth/wrong-password':'Incorrect password.','auth/invalid-credential':'Invalid email or password.','auth/email-already-in-use':'Email already registered. Sign in instead.','auth/invalid-email':'Please enter a valid email.','auth/too-many-requests':'Too many attempts. Please wait a moment.'};
+    showErr(msgs[e.code] || e.message);
+  }
+  document.getElementById('auth-submit').disabled = false;
+};
+
+function showErr(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg; el.classList.add('show');
+}
+
+window.doSignOut = async function() {
+  await fbSignOut(auth);
+  checked = {};
+};
+
+function show(id) {
+  document.getElementById('setup-screen').style.display = id === 'setup-screen' ? 'flex' : 'none';
+  document.getElementById('auth-screen').style.display = id === 'auth-screen' ? 'flex' : 'none';
+  document.getElementById('app-screen').style.display = id === 'app-screen' ? 'block' : 'none';
+}
+
+// BOOT
+const savedKey = localStorage.getItem('fb_apikey');
+const savedId = localStorage.getItem('fb_projectid');
+if (savedKey && savedId) {
+  show('auth-screen');
+  initFirebase(savedKey, savedId);
+} else {
+  show('setup-screen');
+}
+
+window.applyConfig = function() {
+  const apiKey = document.getElementById('cfg-apikey').value.trim();
+  const projectId = document.getElementById('cfg-projectid').value.trim();
+  if (!apiKey || !projectId) { alert('Please enter both apiKey and projectId.'); return; }
+  localStorage.setItem('fb_apikey', apiKey);
+  localStorage.setItem('fb_projectid', projectId);
+  show('auth-screen');
+  initFirebase(apiKey, projectId);
+};
+</script>
+</body>
+</html>
