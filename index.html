@@ -389,14 +389,10 @@ function show(id) {
 }
 
 // BOOT
-const savedKey = localStorage.getItem('fb_apikey');
-const savedId = localStorage.getItem('fb_projectid');
-if (savedKey && savedId) {
-  show('auth-screen');
-  initFirebase(savedKey, savedId);
-} else {
-  show('setup-screen');
-}
+const savedKey = "AIzaSyCCqKg1lE2HTMXDbVXlhfhqR_hEPfCUAbY";
+const savedId = "interview-prep-1971c";
+show('auth-screen');
+initFirebase(savedKey, savedId);
 
 window.applyConfig = function() {
   const apiKey = document.getElementById('cfg-apikey').value.trim();
